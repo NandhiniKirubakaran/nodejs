@@ -5,6 +5,9 @@ dotenv.config();
 import cors from 'cors';
 import loginRouter from './routes/login.route.js';
 import signupRouter from './routes/signup.route.js';
+import { getUserByName } from './services/service.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 
 
@@ -60,6 +63,28 @@ app.get('/mobiles/:id', async (request, response) => {
 });
 
 
+//Login API - POST -Create
+app.post('/user', async function (request, response) {
+    const { username, password } = request.body;
+
+    const userFromDB = await getUserByName(username);
+    console.log(userFromDB);
+
+    if(!userFromDB){
+        response.status(401).send({ message: "Invalid Credentials"});
+    } else {
+        const storedDBPassword = userFromDB.password;
+        const isPasswordCheck = await bcrypt.compare(password, storedDBPassword);
+        console.log(isPasswordCheck);
+
+        if(isPasswordCheck){
+            const token = jwt.sign({ id: userFromDB._id }, process.env.SECRET_KEY);
+            response.send({ message: "Successfull login", token: token});
+        } else {
+            response.status(401).send({ message: "Invalid Credentials"});
+        }
+    }
+});
 
 
 app.listen(PORT, () => console.log(`The Server Started in : ${PORT} 🎊`));
