@@ -10,7 +10,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 
-
 const app = express();
 
 //env - Environment variables
