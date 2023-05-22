@@ -5,7 +5,8 @@ dotenv.config();
 import cors from 'cors';
 import loginRouter from './routes/login.route.js';
 import signupRouter from './routes/signup.route.js';
-
+import Stripe from 'stripe';
+import {v4 as uuidv4} from 'uuid';
 
 
 const app = express();
@@ -58,6 +59,31 @@ app.get('/mobiles/:id', async (request, response) => {
     const result = await client.db("signup").collection("mobiles").findOne({ id: id});
     response.send(result);
 });
+
+
+const SECRET_KEY_1 = process.env.SECRET_KEY_1;
+
+const stripe = new Stripe(SECRET_KEY_1);
+
+app.get('/payment', async (req, res) => {
+    const { product, token } = req.body;
+    const transactionkey = uuidv4();
+    return stripe.customers.create({
+        email: token.email,
+        source: token.id,
+    }).then((customer) => {
+        stripe.charges.create({
+            amount: product.price,
+            customer: customer.id,
+            receipt_email: product.name,
+        }).then((result) => {
+            res.json(result);
+        }).catch((err) => {
+            console.log(err);
+        });
+    });
+});
+
 
 
 app.listen(PORT, () => console.log(`The Server Started in : ${PORT} 🎊`));
