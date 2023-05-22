@@ -66,16 +66,16 @@ const SECRET_KEY_1 = process.env.SECRET_KEY_1;
 const stripe = new Stripe(SECRET_KEY_1);
 
 app.get('/payment', async (req, res) => {
-    const { product, token } = req.body;
+    const { mobile, token } = req.body;
     const transactionkey = uuidv4();
     return stripe.customers.create({
         email: token.email,
         source: token.id,
     }).then((customer) => {
         stripe.charges.create({
-            amount: product.price,
+            amount: mobile.price,
             customer: customer.id,
-            receipt_email: product.name,
+            receipt_email: mobile.model,
         }).then((result) => {
             res.json(result);
         }).catch((err) => {
